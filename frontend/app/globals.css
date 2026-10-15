@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+:root {
+  --background: 0 0% 98%;
+  --foreground: 220 25% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 25% 12%;
+  --primary: 210 85% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 15% 94%;
+  --muted: 220 15% 96%;
+  --muted-foreground: 220 15% 45%;
+  --border: 220 15% 88%;
+  --ring: 210 85% 38%;
+  --radius: 0.5rem;
+  --clinical-blue: #1a56db;
+  --clinical-teal: #0694a2;
+  --clinical-green: #057a55;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.clinical-gradient {
+  background: linear-gradient(135deg, #1a56db 0%, #0694a2 100%);
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
