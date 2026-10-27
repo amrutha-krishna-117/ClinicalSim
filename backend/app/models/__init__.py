@@ -117,7 +117,9 @@ class SimulationSession(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="sessions")
     scenario: Mapped["Scenario"] = relationship("Scenario", back_populates="sessions")
-    messages: Mapped[list["ConversationMessage"]] = relationship("ConversationMessage", back_populates="session")
+    messages: Mapped[list["ConversationMessage"]] = relationship(
+        "ConversationMessage", back_populates="session", order_by="ConversationMessage.created_at"
+    )
     actions: Mapped[list["StudentAction"]] = relationship("StudentAction", back_populates="session")
 
 

@@ -475,6 +475,7 @@ export default function SimulationPage() {
                 }}
                 stage="general"
                 scenario={scenario}
+                patientState={patientState}
               />
             )}
             {activeTab === 'examine' && session && (

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/store';
@@ -103,6 +103,15 @@ export default function AssessmentPage() {
     queryFn: () => scenariosApi.get(session!.scenario_id).then(r => r.data),
     enabled: !!session?.scenario_id,
   });
+
+  const { data: transcript = [] } = useQuery({
+    queryKey: ['messages', sessionId],
+    queryFn: () => sessionsApi.getMessages(sessionId).then(r => r.data),
+    enabled: isAuthenticated && _hasHydrated && !!sessionId,
+  });
+  const [showTx, setShowTx] = useState(true);
+  const txOrdered = [...transcript].sort((a: any, b: any) => (a.created_at ?? '').localeCompare(b.created_at ?? ''));
+  const hhmmss = (iso?: string) => { const d = iso ? new Date(iso) : null; return d && !isNaN(d.getTime()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''; };
 
   if (!_hasHydrated || isLoading) {
     return (
@@ -448,6 +457,32 @@ export default function AssessmentPage() {
             )}
           </div>
         )}
+
+        {/* Consultation transcript — every question and answer, in order */}
+        <div style={{ background: '#ffffff', borderRadius: 14, border: '1px solid #dde6f0', marginBottom: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+          <button onClick={() => setShowTx(!showTx)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 26px', background: 'none', border: 'none', cursor: 'pointer' }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#0d1f35' }}>
+              Consultation Transcript <span style={{ fontWeight: 400, color: '#64748b' }}>· {txOrdered.length} messages</span>
+            </span>
+            <span style={{ fontSize: 12, color: '#2563eb', fontWeight: 600 }}>{showTx ? 'Hide' : 'Show'}</span>
+          </button>
+          {showTx && (
+            <div style={{ padding: '0 26px 18px', maxHeight: 420, overflowY: 'auto' }}>
+              {txOrdered.length === 0 && <p style={{ fontSize: 12, color: '#94a3b8' }}>No conversation was recorded for this session.</p>}
+              {txOrdered.map((m: any, i: number) => (
+                <div key={m.id} style={{ display: 'flex', gap: 10, padding: '8px 0', borderTop: i ? '1px solid #f1f5f9' : 'none', fontSize: 12, lineHeight: 1.6 }}>
+                  <span style={{ width: 22, color: '#94a3b8', flexShrink: 0 }}>{i + 1}</span>
+                  <span style={{ width: 64, color: '#94a3b8', flexShrink: 0 }}>{hhmmss(m.created_at)}</span>
+                  <span style={{ width: 62, fontWeight: 700, flexShrink: 0, color: m.role === 'student' ? '#1d4ed8' : '#0f766e' }}>
+                    {m.role === 'student' ? 'Doctor' : 'Patient'}
+                  </span>
+                  <span style={{ color: '#1e293b' }}>{m.content}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Action buttons */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>

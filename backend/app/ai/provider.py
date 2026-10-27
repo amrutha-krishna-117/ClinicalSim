@@ -8,6 +8,7 @@ from typing import Optional
 from app.core.config import settings
 import httpx
 import json
+from app.ai.patient_voice import answer as scripted_answer
 import re
 
 
@@ -294,9 +295,21 @@ RULES:
 - Show appropriate emotion
 - Do NOT reveal the diagnosis
 - Stay consistent with the history above
-- Do NOT introduce symptoms or history not in the scenario above"""
+- Do NOT introduce symptoms or history not in the scenario above
+- Your reply is SPOKEN ALOUD: plain conversational English, first person, no stage directions, no asterisks, no brackets, no medical jargon the patient would not use
+- Answer only what was asked; short answers are fine. Match the patient's state: breathless patients speak in short broken phrases"""
 
         msgs = history[-10:] + [{"role": "user", "content": message}]
+        # Real AI model available -> use it. Otherwise (or if it fails) use this scenario's own script,
+        # so every case still has a distinct, accurate patient.
+        if not isinstance(self.provider, FallbackProvider):
+            try:
+                return await self.provider.complete(system, msgs, 250)
+            except Exception:
+                pass
+        scripted = scripted_answer(scenario, message)
+        if scripted:
+            return scripted
         return await self._safe(system, msgs, 250)
 
     async def generate_feedback(self, session_data: dict, scenario: dict) -> str:

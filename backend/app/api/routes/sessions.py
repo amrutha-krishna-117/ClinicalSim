@@ -60,8 +60,11 @@ def get_session(session_id: str, db: Session = Depends(get_db), current_user: Us
 
 @router.get("/{session_id}/messages", response_model=list[MessageOut])
 def get_messages(session_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    session = get_session_or_404(session_id, current_user.id, db)
-    return session.messages
+    get_session_or_404(session_id, current_user.id, db)
+    return (db.query(ConversationMessage)
+            .filter(ConversationMessage.session_id == session_id)
+            .order_by(ConversationMessage.created_at.asc())
+            .all())
 
 
 @router.post("/{session_id}/conversation", response_model=ConversationResponse)
@@ -72,23 +75,24 @@ def send_message(session_id: str, data: ConversationRequest, db: Session = Depen
     if session.status == SessionStatus.CREATED:
         session.status = SessionStatus.HISTORY_TAKING
 
-    # Special trigger: patient opens the consultation with their presenting complaint
+    # Special trigger: patient opens the consultation in their own words (spoken aloud by the browser)
     if data.message == '[START_CONSULTATION]':
-        opening = (
-            f"*looks up as you enter* Hello, doctor. Thank you for seeing me. "
-            f"I've been having {scenario.chief_complaint.lower() if scenario.chief_complaint else 'some problems'} "
-            f"and I'm quite worried about it."
-        )
+        already = (db.query(ConversationMessage).filter(ConversationMessage.session_id == session_id)
+                   .order_by(ConversationMessage.created_at.asc()).first())
+        if already:
+            return ConversationResponse(patient_response=already.content if already.role == 'patient' else '', stage='greeting', history_items_obtained=[])
+        from app.ai.patient_voice import opening_line
+        opening = opening_line({
+            "scenario_title": scenario.title, "patient_name": scenario.patient_name,
+            "patient_age": scenario.patient_age, "patient_personality": scenario.patient_personality,
+            "history_data": scenario.history_data,
+        }) or ("Hello, doctor. " + (scenario.chief_complaint or "I haven't been feeling well") + ".")
         patient_msg = ConversationMessage(
             session_id=session_id, role="patient", content=opening, stage="greeting"
         )
         db.add(patient_msg)
         db.commit()
-        return ConversationResponse(
-            patient_response=opening,
-            stage="greeting",
-            history_items_obtained=[]
-        )
+        return ConversationResponse(patient_response=opening, stage="greeting", history_items_obtained=[])
 
     student_msg = ConversationMessage(session_id=session_id, role="student", content=data.message, stage=data.stage)
     db.add(student_msg)

@@ -1,35 +1,20 @@
-# Patient GLB Asset — REQUIRED FOR REALISTIC AVATAR
+# Patient models
 
-## File needed: default-adult-male.glb
+Put TWO files here (exact names):
 
-The simulation loads this file automatically.
-If present → realistic GLB human is shown.
-If missing → high-quality procedural fallback is used.
+    patient-male.glb
+    patient-female.glb
 
-## How to get a free realistic GLB:
+Then rebuild:  docker compose build --no-cache frontend && docker compose up
 
-### Option 1 — ReadyPlayerMe (FREE, recommended)
-1. Go to https://readyplayer.me
-2. Create a realistic adult avatar
-3. Download as GLB (full body)
-4. Rename to: default-adult-male.glb
-5. Place in this folder
+Any humanoid GLB with a skeleton works. For the best result use a model that has
+SEPARATE clothing meshes (the app swaps them for a hospital-gown print) and ARKit
+blendshapes (blinking + pain/anxiety expressions) - Ready Player Me avatars have both.
 
-### Option 2 — Mixamo (FREE, Adobe account needed)
-1. Go to https://www.mixamo.com
-2. Choose a character → download as FBX/GLB
-3. Convert FBX → GLB using https://products.aspose.app/3d/conversion/fbx-to-glb
-4. Place here as default-adult-male.glb
+Where to get one (check each licence before you use it in a report/demo):
+  - Ready Player Me (readyplayer.me): create a male and a female avatar, download as GLB.
+  - Sketchfab: search "hospital patient", filter Downloadable + a CC0 / CC-BY licence, download glTF/GLB.
+  - Hum3D (the models in your reference screenshots) are PAID; if you buy one, export as GLB/FBX
+    (convert FBX to GLB in Blender if needed).
 
-### Option 3 — Sketchfab (Licensed)
-Search: "medical patient" or "realistic human" → download GLB
-
-## GLB Requirements
-- Humanoid skeleton (T-pose preferred)
-- Height: approximately 1.75m
-- PBR materials (metalness/roughness)
-- File size: ideally under 15MB
-
-## After placing the file
-Just reload the browser — no rebuild needed.
-The loader detects the file via HTTP HEAD request and switches automatically.
+Until the files exist, the app shows a plain fallback body instead of crashing.
