@@ -12,9 +12,16 @@ talk to them (typing or by voice), order tests, make a diagnosis, and get a scor
 ## Run it (any computer with Docker Desktop)
 
 ```bash
-cp .env.example .env          # optional: add ANTHROPIC_API_KEY for AI conversation
+cp .env.example .env
+# Open .env and add the key for your selected AI_PROVIDER (Groq by default)
 docker compose up --build
 ```
+
+Create an API key in the selected provider's official developer console. For the default Groq setup,
+create a Groq API key and paste it after `GROQ_API_KEY=` in the root `.env` file. For OpenAI or
+Anthropic, change `AI_PROVIDER` and fill `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` instead. Keep the key
+in `.env`; do not paste it into source files, chat, or GitHub. The root `.env` is ignored by Git.
+After changing the key, restart the backend with `docker compose up -d --force-recreate backend`.
 
 First build downloads everything and takes several minutes (internet needed). When the logs say the
 frontend is ready, open **http://localhost:3000** in **Google Chrome**. API docs: http://localhost:8000/docs
@@ -34,7 +41,7 @@ Stop with Ctrl+C. Start completely fresh (wipes saved sessions): `docker compose
 * **Allow the microphone** when Chrome asks.
 * **Patient model:** CC0 human patient meshes are included under `frontend/public/assets/patients/`.
   The sitting version is generated from the same patient mesh so pose changes preserve the patient's appearance.
-* For natural free-form patient replies, add `GROQ_API_KEY` to the root `.env` file copied from `.env.example`. Without a key, the scenario scripts still answer common questions offline.
+* With a valid provider key, patient replies are generated dynamically but stay in character and are grounded in the selected synthetic case. Without a key, or if the API is unavailable, scenario scripts answer common questions offline.
 * The same patient identity is used for every position. Sitting uses a pose baked from the shared model and places the patient at the open long side of the bed.
 * Ports used: 3000 (web) and 8000 (API). Database and cache are not exposed to the host.
 
@@ -63,7 +70,7 @@ Backend tests need `pip install -r requirements.txt` and `python seed.py` once.
 
 ## Working on the code
 ```bash
-# backend
+# backend (when running without Docker, put provider variables in backend/.env)
 cd backend && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 python seed.py && uvicorn app.main:app --reload --port 8000
 # frontend
