@@ -1,0 +1,14 @@
+.env
+.env.local
+*.env
+!.env.example
+node_modules/
+.next/
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.tsbuildinfo
+.DS_Store
+*.db
+*.sqlite3
